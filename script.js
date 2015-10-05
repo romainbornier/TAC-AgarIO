@@ -7,30 +7,38 @@ var canvas=document.getElementById("view"),
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-bg_canvas.width = canvas.width * 3;
-bg_canvas.height = canvas.height * 3;
+bg_canvas.width = 3 * canvas.width;
+bg_canvas.height = 3 * canvas.height;
 
 var targetX = 0,
     targetY = 0;
 
 var speed = 2,
     resizing = 1,
-    fps = 60;
+    fps = 30;
 
 var grid_size = 50;
 
 var cell = {
-    rad : 5,
+    rad : 20,
     color : "#CC0000",
     posX : 0,
     posY : 0,
+    asbPosX : 0,
     absPosX : 0,
-    absPosY : 0,
     velX : 0,
     velY : 0
 };
 
+var pill = {
+    color : "#0000CC",
+    rad : 5,
+    posX : canvas.width,
+    posY : canvas.height
+};
+
 function drawBoard(){
+    bg_ctx.beginPath();
     for (var x = 0; x <= bg_canvas.width; x += grid_size) {
         bg_ctx.moveTo(x, 0);
         bg_ctx.lineTo(x, bg_canvas.height);
@@ -43,6 +51,7 @@ function drawBoard(){
 
     bg_ctx.strokeStyle = "black";
     bg_ctx.stroke();
+    bg_ctx.closePath();
 }
 
 function init(cell) {
@@ -53,6 +62,7 @@ function init(cell) {
     cell.absPosY = bg_canvas.height/2;
 
     drawBoard();
+    displayCell(bg_ctx, pill);
 }
 
 function displayCell(context, cell) {
@@ -87,6 +97,19 @@ function update(){
     cell.absPosX += cell.velX;
     cell.absPosY += cell.velY;
 
+    if (cell.absPosX < cell.rad) {
+        cell.absPosX = cell.rad;
+    }
+    if (cell.absPosY < cell.rad) {
+        cell.absPosY = cell.rad;
+    }
+    if (cell.absPosX > bg_canvas.width - cell.rad - canvas.width) {
+        cell.absPosX = bg_canvas.width - cell.rad - canvas.width;
+    }
+    if (cell.absPosY > bg_canvas.height - cell.rad - canvas.height) {
+        cell.absPosY = bg_canvas.height - cell.rad - canvas.height;
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.drawImage(bg_canvas, cell.absPosX, cell.absPosY, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
@@ -96,7 +119,7 @@ function update(){
 }
 
 function resize(){
-    if (cell.rad <= 1 || cell.rad >= 10) {
+    if (cell.rad == 1 || cell.rad == 10) {
         resizing *= -1;
     }
 
@@ -107,16 +130,9 @@ function resize(){
 
 init(cell);
 update();
-resize();
+//resize();
 
 canvas.addEventListener("mousemove", function(e){
     targetX = e.pageX;
     targetY = e.pageY;
 });
-
-window.addEventListener('resize', resizeCanvas, false);
-
-function resizeCanvas(){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
