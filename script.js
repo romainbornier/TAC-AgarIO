@@ -1,138 +1,194 @@
-var bg_canvas = document.createElement('canvas');
-var bg_ctx = bg_canvas.getContext('2d');
+var Vector = function() {};
+var Cell = function() {};
+var Pellet = function() {};
+var Canvas = function() {};
 
-var canvas=document.getElementById("view"),
-    ctx = view.getContext("2d");
+Vector.prototype = {
+    _x : 0,
+    _y : 0,
+    getX : function() { return this._x; },
+    getY : function() { return this._y; },
+    setX : function(x) { this._x = x; },
+    setY : function(y) { this._y = y; },
+    addX : function(value) { this._x += value; },
+    addY : function(value) { this._y += value; }
+};
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+Cell.prototype = {
+    _score : 0,
+    _radius : 20,
+    _speed : 5,
+    _color : "#CC0000",
+    _position : new Vector(),
+    getPosition : function() { return this._position; },
+    getSpeed : function() { return this._speed; },
+    getRadius : function() { return this._radius; },
+    getColor : function() { return this._color; },
+    calculateVelocity : function(distance) {
+        var velocity = new Vector();
 
-bg_canvas.width = 3 * canvas.width;
-bg_canvas.height = 3 * canvas.height;
+        var euclidian = Math.sqrt(distance.getX() * distance.getX() + distance.getY() * distance.getY());
 
-var targetX = 0,
-    targetY = 0;
+        if (euclidian == 0) {
+            velocity.setX(0);
+            velocity.setY(0);
+        }
+        else {
+            velocity.setX((distance.getX() / euclidian) * this.getSpeed());
+            velocity.setY((distance.getY() / euclidian) * this.getSpeed());
 
-var speed = 2,
-    resizing = 1,
-    fps = 30;
+            if (Math.abs(distance.getX()) < Math.abs(velocity.getX())) {
+                velocity.setX(distance.getX());
+            }
 
+            if (Math.abs(distance.getY()) < Math.abs(velocity.getY())) {
+                velocity.setY(distance.getY());
+            }
+        }
+
+        return velocity;
+    },
+    correctionBorders : function() {
+        if (this.getPosition().getX() < this.getRadius()) {
+            this.getPosition().setX(this.getRadius());
+        }
+        if (this.getPosition().getY() < this.getRadius()) {
+            this.getPosition().setY(this.getRadius());
+        }
+        if (this.getPosition().getX() > background._size.getX() - this.getRadius() - frame._size.getX()) {
+            this.getPosition().setX(background._size.getX() - this.getRadius() - frame._size.getY());
+        }
+        if (this.getPosition().getY() > background._size.getY() - this.getRadius()) {
+            this.getPosition().getY(background._size.getY() - this.getRadius());
+        }
+    },
+    move : function(destination) {
+        var distance = new Vector();
+
+        distance.setX(destination.getX() - this.getPosition().getX());
+        distance.setY(destination.getY() - this.getPosition().getY());
+
+        var velocity = this.calculateVelocity(distance);
+
+        this.getPosition().addX(velocity.getX());
+        this.getPosition().addY(velocity.getY());
+
+        this.correctionBorders();
+    },
+    init : function() {
+        this.getPosition().setX(background._size.getX()/2 - this.getRadius());
+        this.getPosition().setY(background._size.getY()/2 - this.getRadius());
+
+        drawBoard();
+    },
+    display : function(canvas) {
+        canvas._context.clearRect(0, 0, canvas._size.getX(), canvas._size.getY());
+
+        canvas._origin.setX(this.getPosition().getX() - canvas._size.getX() / 2);
+        canvas._origin.setY(this.getPosition().getY() - canvas._size.getY() / 2);
+
+        if (canvas._parent != null) {
+            canvas._context.drawImage(canvas._parent._self, canvas.getOrigin().getX(), canvas.getOrigin().getY(),
+                canvas.getSize().getX(), canvas.getSize().getY(), 0, 0, canvas.getSize().getX(), canvas.getSize().getY());
+        }
+
+        var relative_position = this.getRelativePosition(canvas);
+
+        frame._context.fillStyle = this.getColor();
+        frame._context.beginPath();
+        frame._context.arc(relative_position.getX(), relative_position.getY(), this.getRadius(), 0, Math.PI*2);
+        frame._context.fill();
+        frame._context.closePath();
+    },
+    getRelativePosition : function(canvas) {
+        var relative_position = new Vector();
+
+        relative_position.setX(this.getPosition().getX() - canvas.getOrigin().getX());
+        relative_position.setY(this.getPosition().getY() - canvas.getOrigin().getY());
+
+        return relative_position;
+    }
+};
+
+Pellet.prototype = {
+    _radius : 5,
+    _color : "#0000CC",
+    _position : new Vector()
+};
+
+Canvas.prototype = {
+    _self : null,
+    _context : null,
+    _parent : null,
+    _origin : null,
+    _size : null,
+    draw : function() {},
+    init : function() {
+        this._origin = new Vector();
+        this._size = new Vector();
+    },
+    resize : function(x, y) {
+        this.getSize().setX(x);
+        this.getSize().setY(y);
+
+        this._self.width = this.getSize().getX();
+        this._self.height = this.getSize().getY();
+    },
+    getOrigin : function() { return this._origin; },
+    getSize : function() { return this._size; }
+};
+
+var background = new Canvas();
+var frame = new Canvas();
+
+background.init();
+frame.init();
+
+background._self = document.createElement('canvas');
+background._context = background._self.getContext('2d');
+
+frame._self = document.getElementById("view");
+frame._context = frame._self.getContext('2d');
+frame._parent = background;
+
+frame.resize(window.innerWidth, window.innerHeight);
+background.resize(3 * window.innerWidth, 3 * window.innerHeight);
+
+var fps = 30;
 var grid_size = 50;
-
-var cell = {
-    rad : 20,
-    color : "#CC0000",
-    posX : 0,
-    posY : 0,
-    asbPosX : 0,
-    absPosX : 0,
-    velX : 0,
-    velY : 0
-};
-
-var pill = {
-    color : "#0000CC",
-    rad : 5,
-    posX : canvas.width,
-    posY : canvas.height
-};
+var x;
 
 function drawBoard(){
-    bg_ctx.beginPath();
-    for (var x = 0; x <= bg_canvas.width; x += grid_size) {
-        bg_ctx.moveTo(x, 0);
-        bg_ctx.lineTo(x, bg_canvas.height);
+    background._context.beginPath();
+    for (x = 0; x <= background._size.getX(); x += grid_size) {
+        background._context.moveTo(x, 0);
+        background._context.lineTo(x, background._size.getY());
     }
 
-    for (var x = 0; x <= bg_canvas.height; x += grid_size) {
-        bg_ctx.moveTo(0, x);
-        bg_ctx.lineTo(bg_canvas.width, x);
+    for (x = 0; x <= background._size.getY(); x += grid_size) {
+        background._context.moveTo(0, x);
+        background._context.lineTo(background._size.getX(), x);
     }
 
-    bg_ctx.strokeStyle = "black";
-    bg_ctx.stroke();
-    bg_ctx.closePath();
-}
-
-function init(cell) {
-    cell.posX = canvas.width/2 - cell.rad;
-    cell.posY = canvas.height/2 - cell.rad;
-
-    cell.absPosX = bg_canvas.width/2;
-    cell.absPosY = bg_canvas.height/2;
-
-    drawBoard();
-    displayCell(bg_ctx, pill);
-}
-
-function displayCell(context, cell) {
-    context.fillStyle = cell.color;
-    context.beginPath();
-    context.arc(cell.posX, cell.posY, cell.rad, 0, Math.PI*2);
-    context.fill();
-    context.closePath();
+    background._context.strokeStyle = "black";
+    background._context.stroke();
+    background._context.closePath();
 }
 
 function update(){
-    var tx = targetX - cell.posX,
-        ty = targetY - cell.posY,
-        dist = Math.sqrt(tx*tx+ty*ty);
-
-    if (dist == 0 ) {
-        cell.velX = 0;
-        cell.velY = 0;
-    }
-    else {
-        cell.velX = (tx/dist)*speed;
-        cell.velY = (ty/dist)*speed;
-
-        if (Math.abs(tx) < Math.abs(cell.velX)) {
-            cell.velX = tx;
-        }
-        if (Math.abs(ty) < Math.abs(cell.velY)) {
-            cell.velY = ty;
-        }
-    }
-
-    cell.absPosX += cell.velX;
-    cell.absPosY += cell.velY;
-
-    if (cell.absPosX < cell.rad) {
-        cell.absPosX = cell.rad;
-    }
-    if (cell.absPosY < cell.rad) {
-        cell.absPosY = cell.rad;
-    }
-    if (cell.absPosX > bg_canvas.width - cell.rad - canvas.width) {
-        cell.absPosX = bg_canvas.width - cell.rad - canvas.width;
-    }
-    if (cell.absPosY > bg_canvas.height - cell.rad - canvas.height) {
-        cell.absPosY = bg_canvas.height - cell.rad - canvas.height;
-    }
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.drawImage(bg_canvas, cell.absPosX, cell.absPosY, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-    displayCell(ctx, cell);
+    cell.move(target);
+    cell.display(frame);
 
     setTimeout(update, 1000/fps);
 }
 
-function resize(){
-    if (cell.rad == 1 || cell.rad == 10) {
-        resizing *= -1;
-    }
-
-    cell.rad += resizing;
-
-    setTimeout(resize, 100);
-}
-
-init(cell);
+cell = new Cell();
+var target = new Vector();
+cell.init();
 update();
 //resize();
 
-canvas.addEventListener("mousemove", function(e){
-    targetX = e.pageX;
-    targetY = e.pageY;
+frame._self.addEventListener("mousemove", function(e){
+    target.setX(e.pageX + frame.getOrigin().getX());
+    target.setY(e.pageY + frame.getOrigin().getY());
 });
