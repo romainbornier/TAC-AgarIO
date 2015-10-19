@@ -49,17 +49,18 @@ Cell.prototype = {
         return velocity;
     },
     correctionBorders : function() {
-        if (this.getPosition().getX() < this.getRadius()) {
-            this.getPosition().setX(this.getRadius());
+
+        if (this.getPosition().getX() < this.getRadius() + frame._size.getX() / 2) {
+            this.getPosition().setX(this.getRadius() + frame._size.getX() / 2);
         }
-        if (this.getPosition().getY() < this.getRadius()) {
-            this.getPosition().setY(this.getRadius());
+        if (this.getPosition().getY() < this.getRadius() + frame._size.getY() / 2) {
+            this.getPosition().setY(this.getRadius() + frame._size.getY() / 2);
         }
-        if (this.getPosition().getX() > background._size.getX() - this.getRadius() - frame._size.getX()) {
-            this.getPosition().setX(background._size.getX() - this.getRadius() - frame._size.getY());
+        if (this.getPosition().getX() > background._size.getX() - this.getRadius() - frame._size.getX() / 2) {
+            this.getPosition().setX(background._size.getX() - this.getRadius() - frame._size.getX() / 2);
         }
-        if (this.getPosition().getY() > background._size.getY() - this.getRadius()) {
-            this.getPosition().getY(background._size.getY() - this.getRadius());
+        if (this.getPosition().getY() > background._size.getY() - this.getRadius() - frame._size.getY() / 2) {
+            this.getPosition().setY(background._size.getY() - this.getRadius() - frame._size.getY() / 2);
         }
     },
     move : function(destination) {
