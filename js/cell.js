@@ -42,7 +42,7 @@ Cell.prototype.display = function() {
 Cell.prototype.move = function(direction) {
     var velocity = new D2Coordinate();
 
-    var euclidian = Math.sqrt(Math.pow(direction.getX(), 2) + Math.pow(direction.getY(), 2));
+    var euclidian = direction.distance(new D2Coordinate(0,0));
 
     if (euclidian == 0) {
         velocity.setX(0);
@@ -91,3 +91,12 @@ Cell.prototype.borderCorrectCoords = function() {
 
     this.coords.set(correctedX, correctedY);
 };
+
+Cell.prototype.isOverPellet = function(pellet) {
+    return (this.getCoords().distance(pellet.getCoords()) < this.radius);
+}
+
+Cell.prototype.eatPellet = function(pellet) {
+    this.radius += pellet.getValue();
+    // TODO : score
+}

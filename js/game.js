@@ -61,11 +61,12 @@ Game.prototype.init = function() {
 
     window.addEventListener("resize", function(){
         this.frame.resize(window.innerWidth, window.innerHeight);
+        // TODO : update game border
     }.bind(this), false);
 
     this.background.init();
 
-    for (var i = 0; i < 3000; i++) {
+    for (var i = 0; i < 300; i++) {
         this.spawnPellet();
     }
 
@@ -83,6 +84,17 @@ Game.prototype.update = function() {
         direction.addY(-cell.getRelativeCoords().getY());
 
         cell.move(direction);
+
+        for (var i = this.pellets.length - 1; i >= 0; i--) {
+            if (cell.isOverPellet(this.pellets[i])) {
+                cell.eatPellet(this.pellets[i]);
+                this.pellets.splice(i, 1);
+            }
+        }
+
+        background.display();
+        background.init();
+        this.displayPellet();
     }
 
     frame.display();

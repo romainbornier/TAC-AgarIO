@@ -31,3 +31,12 @@ D2Coordinate.prototype.addX = function(value) {
 D2Coordinate.prototype.addY = function(value) {
     this.y += value;
 };
+
+D2Coordinate.prototype.distance = function(coords) {
+    var distanceX, distanceY;
+
+    distanceX = this.x - coords.getX();
+    distanceY = this.y - coords.getY();
+
+    return Math.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceY, 2));
+};
