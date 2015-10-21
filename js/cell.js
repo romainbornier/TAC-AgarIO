@@ -6,7 +6,7 @@ function Cell(canvas) {
     this.coords = new D2Coordinate(x, y);
     this.color = Color.prototype.generateRandom();
     this.radius = 30;
-    this.speed = 20;
+    this.speed = 10;
 }
 
 Cell.prototype.getCoords = function() {
@@ -35,8 +35,7 @@ Cell.prototype.display = function() {
     } else {
         var relative_coords = this.getRelativeCoords();
 
-        this.canvas.drawCircle(relative_coords, this.radius + 5, this.color.setLuminosity(0.7));
-        this.canvas.drawCircle(relative_coords, this.radius, this.color);
+        this.canvas.drawCircle(relative_coords, this.radius, this.color, 5, 0.7);
     }
 };
 

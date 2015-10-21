@@ -1,7 +1,7 @@
-function Pellet(canvas, minX, minY, maxX, maxY) {
+function Pellet(canvas) {
     var x, y;
-    x = minX + Math.random() * (maxX - minX);
-    y = minY + Math.random() * (maxY - minY);
+    x = canvas.getBorder().getX() + Math.random() * (canvas.getWidth() - 2 * canvas.getBorder().getX());
+    y = canvas.getBorder().getY() + Math.random() * (canvas.getHeight() - 2 * canvas.getBorder().getY());
 
     this.canvas = canvas;
     this.coords = new D2Coordinate(x, y);
