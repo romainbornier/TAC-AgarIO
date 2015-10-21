@@ -55,6 +55,18 @@ Canvas.prototype.resize = function(width, height) {
     this.html.height = this.getHeight();
 };
 
+Canvas.prototype.drawName = function (coords, playerName, border_width) {
+
+    this.context.font = "bold 10px Arial";
+    this.context.fillStyle = "black";
+    var textWidth = this.context.measureText(playerName).width;
+    this.context.fillText(playerName, coords.getX() - textWidth/2, coords.getY());
+
+    this.context.strokeStyle = 'white';
+    this.context.lineWidth = border_width;
+    this.context.strokeText(playerName, coords.getX() - textWidth/2, coords.getY());
+};
+
 Canvas.prototype.drawCircle = function(coords, radius, color, border, border_light) {
     this.context.beginPath();
 

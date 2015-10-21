@@ -2,6 +2,7 @@ function Cell(canvas) {
     var x = canvas.getParent().getWidth() / 2;
     var y = canvas.getParent().getHeight() / 2;
 
+    this.playerName = "TestName";
     this.canvas = canvas;
     this.coords = new D2Coordinate(x, y);
     this.color = Color.prototype.generateRandom();
@@ -36,6 +37,7 @@ Cell.prototype.display = function() {
         var relative_coords = this.getRelativeCoords();
 
         this.canvas.drawCircle(relative_coords, this.radius, this.color, 5, 0.7);
+        this.canvas.drawName(relative_coords, this.playerName, 0.4);
     }
 };
 
@@ -94,9 +96,9 @@ Cell.prototype.borderCorrectCoords = function() {
 
 Cell.prototype.isOverPellet = function(pellet) {
     return (this.getCoords().distance(pellet.getCoords()) < this.radius);
-}
+};
 
 Cell.prototype.eatPellet = function(pellet) {
     this.radius += pellet.getValue();
     // TODO : score
-}
+};
