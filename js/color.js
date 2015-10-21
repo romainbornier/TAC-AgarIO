@@ -5,7 +5,13 @@ function Color(r, g, b) {
 }
 
 Color.prototype.toHex = function() {
-    return '#' + this.r.toString(16) + this.g.toString(16) + this.b.toString(16);
+    var r, g, b;
+
+    r = ("0" + this.r.toString(16)).slice(-2);
+    g = ("0" + this.g.toString(16)).slice(-2);
+    b = ("0" + this.b.toString(16)).slice(-2);
+
+    return '#' + r + g + b;
 };
 
 Color.prototype.generateRandom = function() {
