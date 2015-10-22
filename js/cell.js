@@ -3,11 +3,13 @@ function Cell(canvas) {
     var y = canvas.getParent().getHeight() / 2;
 
     this.playerName = "TestName";
+    this.fontSize = 10;
     this.canvas = canvas;
     this.coords = new D2Coordinate(x, y);
     this.color = Color.prototype.generateRandom();
     this.radius = 30;
     this.speed = 10;
+    this.score = this.radius*this.radius*Math.PI;
 }
 
 Cell.prototype.getCoords = function() {
@@ -37,7 +39,14 @@ Cell.prototype.display = function() {
         var relative_coords = this.getRelativeCoords();
 
         this.canvas.drawCircle(relative_coords, this.radius, this.color, 5, 0.7);
-        this.canvas.drawName(relative_coords, this.playerName, 0.4);
+        this.canvas.drawName(relative_coords, this.playerName, this.radius, this.fontSize, 0.4);
+    }
+};
+
+
+Cell.prototype.updateFontSize = function() {
+    if (this.canvas.context.measureText(this.playerName).width < this.radius + 20) {
+        this.fontSize++;
     }
 };
 
@@ -99,6 +108,9 @@ Cell.prototype.isOverPellet = function(pellet) {
 };
 
 Cell.prototype.eatPellet = function(pellet) {
-    this.radius += pellet.getValue();
+    this.score += pellet.getValue();
+    this.radius = Math.sqrt(this.score/Math.PI);
+    this.updateFontSize();
+    
     // TODO : score
 };

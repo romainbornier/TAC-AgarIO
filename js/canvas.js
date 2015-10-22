@@ -55,11 +55,11 @@ Canvas.prototype.resize = function(width, height) {
     this.html.height = this.getHeight();
 };
 
-Canvas.prototype.drawName = function (coords, playerName, border_width) {
-
-    this.context.font = "bold 10px Arial";
-    this.context.fillStyle = "black";
+Canvas.prototype.drawName = function (coords, playerName, radius, fontSize, border_width) {
     var textWidth = this.context.measureText(playerName).width;
+
+    this.context.font = fontSize+"px Arial";
+    this.context.fillStyle = "black";
     this.context.fillText(playerName, coords.getX() - textWidth/2, coords.getY());
 
     this.context.strokeStyle = 'white';
