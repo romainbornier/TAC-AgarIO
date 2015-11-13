@@ -1,105 +1,130 @@
-function Game(width, height) {
-    this.fps = 60;
-    this.size = new D2Coordinate(width, height);
+function Game() {
+    this.gameArea = new Canvas("gameArea");
+    this.background = new Canvas("background");
+
+    this.initGameArea();
+    this.initBackground();
+
     this.pellets = [];
-    this.cells = [];
-    this.background = null;
-    this.frame = null;
-    this.target = new D2Coordinate(0,0);
+
+    this.ready = false;
 }
 
-Game.prototype.getWidth = function() {
-    return this.size.getX();
+Game.prototype.getGameArea = function() {
+    return this.gameArea;
 };
 
-Game.prototype.getHeight = function() {
-    return this.size.getY();
+Game.prototype.initGameArea = function() {
+    this.gameArea.resize(conf.getGameWidth(), conf.getGameHeight());
+
+    this.gameArea.setParent(this.background);
+    this.gameArea.setOrigin(window.innerWidth / 2, window.innerHeight / 2);
 };
 
-Game.prototype.setBackground = function(background) {
-    if (background.constructor !== Canvas) {
+Game.prototype.initBackground = function() {
+    if (this.background === null || this.background.constructor !== Canvas) {
         console.error("Type error : The background of the game must be a canvas");
     } else {
-        this.background = background;
-        this.background.getBorder().set(window.innerWidth / 2, window.innerHeight / 2);
-    }
-};
+        this.background.resize(conf.getGameWidth() + window.innerWidth, conf.getGameHeight() + window.innerHeight);
 
-Game.prototype.setFrame = function(frame) {
-    if (frame.constructor !== Canvas) {
-        console.error("Type error : The frame of the game must be a canvas");
-    } else {
-        this.frame = frame;
-        this.frame.getBorder().set(window.innerWidth / 2, window.innerHeight / 2);
-    }
-};
+        var gridSize = conf.getGridSize();
 
-Game.prototype.spawnPellet = function() {
-    this.pellets.push(new Pellet(this.background));
-};
+        this.background.getContext().beginPath();
 
-Game.prototype.spawnCell = function() {
-    this.cells.push(new Cell(this.frame));
-};
+        for (var x = gridSize; x <= this.background.getWidth(); x += gridSize) {
+            this.background.getContext().moveTo(x, 0);
+            this.background.getContext().lineTo(x, this.background.getHeight());
+        }
 
-Game.prototype.displayPellet = function() {
-    for (var pellet of this.pellets) {
-        pellet.display();
-    }
-};
+        for (var y = gridSize; y <= this.background.getHeight(); y += gridSize) {
+            this.background.getContext().moveTo(0, y);
+            this.background.getContext().lineTo(this.background.getWidth(), y);
+        }
 
-Game.prototype.displayCell = function() {
-    for (var cell of this.cells) {
-        cell.display();
+        this.background.getContext().strokeStyle = "#777777";
+        this.background.getContext().lineWidth = 1;
+        this.background.getContext().stroke();
+        this.background.getContext().closePath();
     }
 };
 
 Game.prototype.init = function() {
-    window.addEventListener("mousemove", function(e){
-        this.target.set(e.pageX, e.pageY);
-    }.bind(this), false);
-
-    window.addEventListener("resize", function(){
-        this.frame.resize(window.innerWidth, window.innerHeight);
-        // TODO : update game border
-    }.bind(this), false);
-
-    this.background.init();
-
-    for (var i = 0; i < 300; i++) {
+    for (var i = 0; i < conf.getPelletQty(); i++) {
         this.spawnPellet();
     }
 
-    this.spawnCell();
-
-    this.displayPellet();
-
-    this.update();
+    this.ready = true;
 };
 
+Game.prototype.loadState = function(pellets) {
+    for (var i = 0; i < pellets.length; i++) {
+        var spawn = JSON.parse(pellets[i]);
+        this.spawnPellet(spawn.x, spawn.y);
+    }
+
+    this.ready = true;
+};
+
+Game.prototype.isReady = function() {
+    return this.ready;
+};
+
+/*
 Game.prototype.update = function() {
-    for (var cell of this.cells) {
+    if (this.multiplayer.ready == true) {
+        var cell = this.getPlayer().getCell();
+
         var direction = new D2Coordinate(this.target.getX(), this.target.getY());
         direction.addX(-cell.getRelativeCoords().getX());
         direction.addY(-cell.getRelativeCoords().getY());
 
         cell.move(direction);
 
-        for (var i = this.pellets.length - 1; i >= 0; i--) {
-            if (cell.isOverPellet(this.pellets[i])) {
-                cell.eatPellet(this.pellets[i]);
-                this.pellets.splice(i, 1);
+        for (var i = this.getPellets().length - 1; i >= 0; i--) {
+            if (cell.isOverPellet(this.getPellets()[i])) {
+                cell.eatPellet(this.getPellets()[i]);
+                this.getPellets().splice(i, 1);
             }
         }
 
+        var content = {"id" : this.getPlayer().id, "x" : cell.getCoords().getX(), "y" : cell.getCoords().getY()};
+
+        this.multiplayer.sendMessage({"type" : "position", "content" : content});
+
         background.display();
         background.init();
+
         this.displayPellet();
+
+        frame.display();
+        //frame.drawGear(new D2Coordinate(150, 120), 100, 50, 5, new Color(0, 255, 0), 8, 0.8);
+        this.multiplayer.displayCell();
     }
 
-    frame.display();
-    //frame.drawGear(new D2Coordinate(150, 120), 100, 50, 5, new Color(0, 255, 0), 8, 0.8);
-    this.displayCell();
-
     setTimeout(this.update.bind(this), 1000 / this.fps);
+};
+
+Game.prototype.displayCell = function() {
+    for (var i = 0; i < this.multiplayer.players.length; i++) {
+        this.multiplayer.players[i].getCell().display();
+    }
+};
+
+Game.prototype.getPlayer = function() {
+    return this.multiplayer.mainplayer;
+};
+
+Game.prototype.getPellets = function() {
+    return this.multiplayer.pellets;
+};
+    */
+
+Game.prototype.spawnPellet = function(x, y) {
+    this.pellets.push(new Pellet(this.gameArea, x, y));
+};
+
+Game.prototype.displayPellet = function() {
+    for (var i = 0; i < this.pellets.length; i++) {
+        this.pellets[i].display();
+    }
 };

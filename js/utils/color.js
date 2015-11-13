@@ -16,7 +16,7 @@ Color.prototype.toHex = function() {
 
 Color.prototype.generateRandom = function() {
     return new Color(Math.round(Math.random() * 255), Math.round(Math.random() * 255), Math.round(Math.random() * 255));
-}
+};
 
 Color.prototype.setLuminosity = function(ratio) {
     var r, g, b;

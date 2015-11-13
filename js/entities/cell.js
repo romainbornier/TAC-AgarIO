@@ -1,12 +1,16 @@
-function Cell(canvas) {
-    var x = canvas.getParent().getWidth() / 2;
-    var y = canvas.getParent().getHeight() / 2;
+function Cell(canvas, spawnX, spawnY) {
+    var x, y;
 
     this.canvas = canvas;
-    this.coords = new D2Coordinate(x, y);
     this.color = Color.prototype.generateRandom();
-    this.radius = 30;
-    this.speed = 10;
+    this.score = conf.getCellStartScore();
+    this.setMass(this.score);
+
+    var displaySize = this.size * conf.getGridSize();
+    x = (spawnX) ? spawnX : displaySize + Math.random() * (canvas.getWidth() - 2 * displaySize);
+    y = (spawnY) ? spawnY : displaySize + Math.random() * (canvas.getHeight() - 2 * displaySize);
+
+    this.coords = new D2Coordinate(x, y);
 }
 
 Cell.prototype.getCoords = function() {
@@ -29,13 +33,18 @@ Cell.prototype.getRelativeCoords = function() {
     return new D2Coordinate(x, y);
 };
 
+Cell.prototype.setMass = function(value) {
+    this.mass = value;
+    this.size = Math.sqrt(value / 6.25);
+    this.speed = 10/this.size;
+    this.score = Math.max(this.score, this.mass);
+};
+
 Cell.prototype.display = function() {
     if (this.canvas.constructor !== Canvas) {
         console.error("Display error : No canvas associated with this cell");
     } else {
-        var relative_coords = this.getRelativeCoords();
-
-        this.canvas.drawCircle(relative_coords, this.radius, this.color, 5, 0.7);
+        this.canvas.drawCircle(this.coords, this.size * conf.getGridSize(), this.color, 5, 0.7);
     }
 };
 
@@ -83,20 +92,19 @@ Cell.prototype.reframeCanvas = function() {
 Cell.prototype.borderCorrectCoords = function() {
     var correctedX, correctedY;
 
-    correctedX = Math.max(this.coords.getX(), this.canvas.getWidth() / 2);
-    correctedY = Math.max(this.coords.getY(), this.canvas.getHeight() / 2);
+    correctedX = Math.max(this.coords.getX(), this.canvas.getBorder().getX());
+    correctedY = Math.max(this.coords.getY(), this.canvas.getBorder().getY());
 
-    correctedX = Math.min(correctedX, this.canvas.getParent().getWidth() - this.canvas.getWidth() / 2);
-    correctedY = Math.min(correctedY, this.canvas.getParent().getHeight() - this.canvas.getHeight() / 2);
+    correctedX = Math.min(correctedX, this.canvas.getParent().getWidth() - this.canvas.getBorder().getX());
+    correctedY = Math.min(correctedY, this.canvas.getParent().getHeight() - this.canvas.getBorder().getY());
 
     this.coords.set(correctedX, correctedY);
 };
 
 Cell.prototype.isOverPellet = function(pellet) {
-    return (this.getCoords().distance(pellet.getCoords()) < this.radius);
-}
+    return (this.getCoords().distance(pellet.getCoords()) < (this.size * this.canvas.getParent().squareSize / 2));
+};
 
 Cell.prototype.eatPellet = function(pellet) {
-    this.radius += pellet.getValue();
-    // TODO : score
-}
+    this.setMass(this.mass + pellet.getValue());
+};

@@ -1,7 +1,8 @@
-function Pellet(canvas) {
+function Pellet(canvas, spawnX, spawnY) {
     var x, y;
-    x = canvas.getBorder().getX() + Math.random() * (canvas.getWidth() - 2 * canvas.getBorder().getX());
-    y = canvas.getBorder().getY() + Math.random() * (canvas.getHeight() - 2 * canvas.getBorder().getY());
+
+    x = (spawnX) ? spawnX : conf.getPelletSize() + Math.random() * (canvas.getWidth() - 2 * conf.getPelletSize());
+    y = (spawnY) ? spawnY : conf.getPelletSize() + Math.random() * (canvas.getHeight() - 2 * conf.getPelletSize());
 
     this.canvas = canvas;
     this.coords = new D2Coordinate(x, y);
@@ -15,10 +16,6 @@ Pellet.prototype.getCoords = function() {
     return this.coords;
 };
 
-Pellet.prototype.getSize = function() {
-    return this.size;
-};
-
 Pellet.prototype.getValue = function() {
     return this.value;
 };
@@ -30,3 +27,10 @@ Pellet.prototype.display = function() {
         this.canvas.drawPolygon(this.coords, this.size, this.sides, this.color);
     }
 };
+
+Pellet.prototype.toJSON = function() {
+    return {
+        x: this.coords.getX(),
+        y: this.coords.getY()
+    };
+}

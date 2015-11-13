@@ -1,15 +1,19 @@
 // Gear drawing inspiration : Copyright (C) Ken Fyrstenberg / Epistemex
 
-function Canvas(html_element, width, height) {
-    this.html = html_element;
-    this.context = html_element.getContext('2d');
+function Canvas(name, width, height) {
+    this.name = name;
+    this.html = document.getElementById(name);
+    this.context = this.html.getContext('2d');
     this.size = new D2Coordinate(width, height);
     this.origin = new D2Coordinate(0,0);
-    this.border = new D2Coordinate(0,0);
     this.parent = null;
 
     this.resize(width, height);
 }
+
+Canvas.prototype.getName = function() {
+    return this.name;
+};
 
 Canvas.prototype.getWidth = function() {
     return this.size.getX();
@@ -23,28 +27,25 @@ Canvas.prototype.getParent = function() {
     return this.parent;
 };
 
-Canvas.prototype.getContext = function() {
-    return this.context;
+Canvas.prototype.setParent = function(parent) {
+    if (parent === null || parent.constructor !== Canvas) {
+        console.error("Type error : The parent of a canvas must be another canvas");
+    }
+    else {
+        this.parent = parent;
+    }
 };
 
-Canvas.prototype.getHtml = function() {
-    return this.html;
+Canvas.prototype.getContext = function() {
+    return this.context;
 };
 
 Canvas.prototype.getOrigin = function() {
     return this.origin;
 };
 
-Canvas.prototype.getBorder = function() {
-    return this.border;
-};
-
-Canvas.prototype.setParent = function(parent) {
-    if (parent.constructor !== Canvas) {
-        console.error("Type error : The parent must be a canvas");
-    } else {
-        this.parent = parent;
-    }
+Canvas.prototype.setOrigin = function(x, y) {
+    this.origin.set(x, y);
 };
 
 Canvas.prototype.resize = function(width, height) {
@@ -55,10 +56,10 @@ Canvas.prototype.resize = function(width, height) {
     this.html.height = this.getHeight();
 };
 
-Canvas.prototype.drawCircle = function(coords, radius, color, border, border_light) {
+Canvas.prototype.drawCircle = function(coords, size, color, border, border_light) {
     this.context.beginPath();
 
-    this.context.arc(coords.getX(), coords.getY(), radius, 0, Math.PI*2);
+    this.context.arc(coords.getX(), coords.getY(), size/2, 0, Math.PI*2);
 
     this.context.closePath();
 
