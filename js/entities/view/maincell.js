@@ -1,8 +1,9 @@
-function MainCell(canvas, game) {
+function MainCell(canvas, game, name) {
     var x, y;
 
     this.canvas = canvas;
     this.area = game;
+    this.name = name;
     this.color = Color.prototype.generateRandom();
     this.score = conf.getCellStartScore();
     this.setMass(this.score);
@@ -14,31 +15,14 @@ function MainCell(canvas, game) {
     this.coords = new D2Coordinate(x, y);
 }
 
-MainCell.prototype.setMass = function(value) {
-    this.mass = value;
-    this.size = Math.sqrt(value / 6.25);
-    this.speed = 10/this.size;
-    this.score = Math.max(this.score, this.mass);
-};
-
-MainCell.prototype.getCoords = function() {
-    return this.coords;
-};
-
-MainCell.prototype.getSpeed = function() {
-    return this.speed;
-};
-
-MainCell.prototype.getDisplaySize = function() {
-    return this.size * conf.getGridSize();
-};
+MainCell.prototype = Cell.prototype;
 
 MainCell.prototype.display = function() {
     if (this.canvas.constructor !== Canvas) {
         console.error("Display error : No canvas associated with this cell");
     } else {
         var relativeCoords = new D2Coordinate(this.canvas.getWidth() / 2, this.canvas.getHeight() / 2);
-        this.canvas.drawCircle(relativeCoords, this.getDisplaySize(), this.color, 5, 0.7);
+        this.canvas.drawCircle(relativeCoords, this.getDisplaySize(), this.color, 5, 0.7, this.name);
     }
 };
 

@@ -1,6 +1,7 @@
 function Game() {
     this.background = new Canvas(document.createElement("canvas"));
     this.gameArea = new Canvas(document.createElement("canvas"));
+    this.mainPlayer = null;
 
     this.initGameArea();
     this.initBackground();
@@ -10,6 +11,7 @@ function Game() {
     this.ready = false;
 }
 
+/* Getters and setters */
 Game.prototype.getGameArea = function() {
     return this.gameArea;
 };
@@ -18,38 +20,59 @@ Game.prototype.getBackground = function() {
     return this.background;
 };
 
+Game.prototype.getMainPlayer = function() {
+    return this.mainPlayer;
+};
+
+Game.prototype.setMainPlayer = function(player) {
+    if (player === null || player.constructor !== MainPlayer) {
+        console.error("Type error : The main player must be an instance of MainPlayer");
+    } else {
+        this.mainPlayer = player;
+    }
+};
+
+Game.prototype.getPellets = function() {
+    return this.pellets;
+};
+
+/* Initializer : game area */
 Game.prototype.initGameArea = function() {
     this.gameArea.setOrigin(window.innerWidth/2, window.innerHeight/2);
     this.gameArea.resize(conf.getGameWidth(), conf.getGameHeight());
 };
 
+/* Initializer : background */
 Game.prototype.initBackground = function() {
     if (this.background === null || this.background.constructor !== Canvas) {
         console.error("Type error : The background of the game must be a canvas");
     } else {
-        this.background.resize(conf.getGameWidth() + window.innerWidth, conf.getGameHeight() + window.innerHeight);
+        this.background.init = function() {
+            this.resize(conf.getGameWidth() + window.innerWidth, conf.getGameHeight() + window.innerHeight);
 
-        var gridSize = conf.getGridSize();
+            var gridSize = conf.getGridSize();
 
-        this.background.getContext().beginPath();
+            this.getContext().beginPath();
 
-        for (var x = gridSize; x <= this.background.getWidth(); x += gridSize) {
-            this.background.getContext().moveTo(x, 0);
-            this.background.getContext().lineTo(x, this.background.getHeight());
-        }
+            for (var x = gridSize; x <= this.getWidth(); x += gridSize) {
+                this.getContext().moveTo(x, 0);
+                this.getContext().lineTo(x, this.getHeight());
+            }
 
-        for (var y = gridSize; y <= this.background.getHeight(); y += gridSize) {
-            this.background.getContext().moveTo(0, y);
-            this.background.getContext().lineTo(this.background.getWidth(), y);
-        }
+            for (var y = gridSize; y <= this.getHeight(); y += gridSize) {
+                this.getContext().moveTo(0, y);
+                this.getContext().lineTo(this.getWidth(), y);
+            }
 
-        this.background.getContext().strokeStyle = "#777777";
-        this.background.getContext().lineWidth = 1;
-        this.background.getContext().stroke();
-        this.background.getContext().closePath();
+            this.getContext().strokeStyle = "#777777";
+            this.getContext().lineWidth = 1;
+            this.getContext().stroke();
+            this.getContext().closePath();
+        };
     }
 };
 
+/* First player : the pellets and randomly generated */
 Game.prototype.init = function() {
     for (var i = 0; i < conf.getPelletQty(); i++) {
         this.spawnPellet();
@@ -58,6 +81,7 @@ Game.prototype.init = function() {
     this.ready = true;
 };
 
+/* Next players : use the same pellets */
 Game.prototype.loadState = function(pellets) {
     for (var i = 0; i < pellets.length; i++) {
         var spawn = JSON.parse(pellets[i]);
@@ -67,51 +91,36 @@ Game.prototype.loadState = function(pellets) {
     this.ready = true;
 };
 
+/* Place a pellet in the game, either randomly or at a set position */
+Game.prototype.spawnPellet = function(x, y) {
+    var newPellet = new Pellet(this.gameArea, x, y);
+    this.pellets.push(newPellet);
+
+    return newPellet;
+};
+
 Game.prototype.isReady = function() {
     return this.ready;
 };
 
-/*
-Game.prototype.update = function() {
-    if (this.multiplayer.ready == true) {
-        var cell = this.getPlayer().getCell();
+/* Resize the different canvas and adjust their borders */
+Game.prototype.resize = function() {
+    var oldWidth,
+        oldHeight,
 
-        var direction = new D2Coordinate(this.target.getX(), this.target.getY());
-        direction.addX(-cell.getRelativeCoords().getX());
-        direction.addY(-cell.getRelativeCoords().getY());
+        deltaWidth,
+        deltaHeight;
 
-        cell.move(direction);
+    oldWidth = this.background.getWidth();
+    oldHeight = this.background.getHeight();
 
-        for (var i = this.getPellets().length - 1; i >= 0; i--) {
-            if (cell.isOverPellet(this.getPellets()[i])) {
-                cell.eatPellet(this.getPellets()[i]);
-                this.getPellets().splice(i, 1);
-            }
-        }
+    this.background.resize(conf.getGameWidth() + window.innerWidth, conf.getGameHeight() + window.innerHeight);
 
-        var content = {"id" : this.getPlayer().id, "x" : cell.getCoords().getX(), "y" : cell.getCoords().getY()};
+    deltaWidth = this.background.getWidth() - oldWidth;
+    deltaHeight = this.background.getHeight() - oldHeight;
 
-        this.multiplayer.sendMessage({"type" : "position", "content" : content});
+    this.mainPlayer.getFrame().getOrigin().addX(deltaWidth / 2);
+    this.mainPlayer.getFrame().getOrigin().addY(deltaHeight / 2);
 
-        background.display();
-        background.init();
-
-        this.displayPellet();
-
-        frame.display();
-        //frame.drawGear(new D2Coordinate(150, 120), 100, 50, 5, new Color(0, 255, 0), 8, 0.8);
-        this.multiplayer.displayCell();
-    }
-
-    setTimeout(this.update.bind(this), 1000 / this.fps);
-};
-*/
-Game.prototype.spawnPellet = function(x, y) {
-    this.pellets.push(new Pellet(this.gameArea, x, y));
-};
-
-Game.prototype.displayPellet = function() {
-    for (var i = 0; i < this.pellets.length; i++) {
-        this.pellets[i].display();
-    }
+    this.initGameArea();
 };

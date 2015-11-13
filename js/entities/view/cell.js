@@ -1,8 +1,6 @@
 function Cell(canvas, spawnX, spawnY) {
     var x, y;
 
-    this.playerName = "TestName";
-    this.fontSize = 10;
     this.canvas = canvas;
     this.color = Color.prototype.generateRandom();
     this.score = conf.getCellStartScore();
@@ -13,7 +11,6 @@ function Cell(canvas, spawnX, spawnY) {
     y = (spawnY) ? spawnY : displaySize + Math.random() * (canvas.getHeight() - 2 * displaySize);
 
     this.coords = new D2Coordinate(x, y);
-    this.score = this.radius*this.radius*Math.PI;
 }
 
 Cell.prototype.setMass = function(value) {
@@ -31,6 +28,10 @@ Cell.prototype.getSpeed = function() {
     return this.speed;
 };
 
+Cell.prototype.getScore = function() {
+    return this.score;
+};
+
 Cell.prototype.getDisplaySize = function() {
     return this.size * conf.getGridSize();
 };
@@ -40,7 +41,6 @@ Cell.prototype.display = function() {
         console.error("Display error : No canvas associated with this cell");
     } else {
         this.canvas.drawCircle(this.coords, this.getDisplaySize(), this.color, 5, 0.7);
-        this.canvas.drawName(relative_coords, this.playerName, this.radius, this.fontSize, 0.4);
     }
 };
 
@@ -105,9 +105,9 @@ Cell.prototype.borderCorrectCoords = function(coords) {
 };
 
 Cell.prototype.isOverPellet = function(pellet) {
-    return (this.getCoords().distance(pellet.getCoords()) < (this.size * this.canvas.getParent().squareSize / 2));
+    return (this.getCoords().distance(pellet.getCoords()) < (this.getDisplaySize() / 2));
 };
 
 Cell.prototype.eatPellet = function(pellet) {
-    this.setMass(this.mass + pellet.getValue());
+    this.setMass(this.mass + conf.getPelletValue());
 };

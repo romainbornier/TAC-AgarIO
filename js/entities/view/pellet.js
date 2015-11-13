@@ -9,17 +9,14 @@ function Pellet(canvas, spawnX, spawnY) {
     this.color = Color.prototype.generateRandom();
     this.size = 10;
     this.sides = 6;
-    this.value = 100;
 }
 
+/* Getters */
 Pellet.prototype.getCoords = function() {
     return this.coords;
 };
 
-Pellet.prototype.getValue = function() {
-    return this.value;
-};
-
+/* Display the pellet on his associated canvas */
 Pellet.prototype.display = function() {
     if (this.canvas.constructor !== Canvas) {
         console.error("Display error : No canvas associated with this pellet");
@@ -28,9 +25,10 @@ Pellet.prototype.display = function() {
     }
 };
 
+/* Relevant data to JSON format for easy communication */
 Pellet.prototype.toJSON = function() {
     return {
         x: this.coords.getX(),
         y: this.coords.getY()
     };
-}
+};

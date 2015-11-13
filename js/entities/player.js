@@ -3,6 +3,10 @@ function Player(id, gameArea, spawnX, spawnY) {
     this.cell = new Cell(gameArea, spawnX, spawnY);
 }
 
+Player.prototype.getId = function() {
+    return this.id;
+};
+
 Player.prototype.getCell = function() {
     return this.cell;
 };

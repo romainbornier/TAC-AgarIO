@@ -7,27 +7,17 @@
 </head>
 <body>
 
-<canvas id="frame"></canvas>
+<form id="form" action="agario.html" method="GET">
 
-<script type="text/javascript" src="lib/socket.io.js"></script>
-<script type="text/javascript" src="lib/cobra.js"></script>
+    <label for="name">Login</label>
+    <input type="text" id="name" name="name" placeholder="anonymous" />
 
-<script type="text/javascript" src="config/config.js"></script>
+    <label for="room">Room</label>
+    <input type="text" id="room" name="room" placeholder="anonymous" />
 
-<script type="text/javascript" src="js/utils/coordinate.js"></script>
-<script type="text/javascript" src="js/utils/color.js"></script>
+    <input type="submit" value="Jouer" />
 
-<script type="text/javascript" src="js/canvas.js"></script>
+</form>
 
-<script type="text/javascript" src="js/entities/cell.js"></script>
-<script type="text/javascript" src="js/entities/maincell.js"></script>
-<script type="text/javascript" src="js/entities/pellet.js"></script>
-
-<script type="text/javascript" src="js/player.js"></script>
-<script type="text/javascript" src="js/mainplayer.js"></script>
-
-<script type="text/javascript" src="js/game.js"></script>
-<script type="text/javascript" src="js/server.js"></script>
-<script type="text/javascript" src="js/main.js"></script>
 </body>
 </html>

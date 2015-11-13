@@ -1,2 +1,3 @@
+var parser = new Parser();
 var conf = new Config();
-var server = new Server();
+new Server(parser.parseUrl());

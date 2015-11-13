@@ -1,102 +1,114 @@
-function Server() {
-    this.cobra = null;
-
-    this.game = null;
+function Server(params) {
+    this.cobra = new Cobra();
+    this.room = params.room;
+    this.game = new Game();
 
     this.players = [];
-    this.mainplayer = null;
-
     this.playersLoaded = false;
 
-    this.init();
+    this.messageHandler = new MessageHandler(this);
+    this.displayer = new Displayer();
+
+    this.init(params.name, params.room);
 }
 
-Server.prototype.init = function() {
-    this.cobra = new Cobra();
+/* Getters */
+Server.prototype.getCobra = function() {
+    return this.cobra;
+};
+
+Server.prototype.getRoom = function() {
+    return this.room;
+};
+
+Server.prototype.getGame = function() {
+    return this.game;
+};
+
+Server.prototype.getPlayers = function() {
+    return this.players;
+};
+
+Server.prototype.init = function(name, room) {
+    /* Connect to the Cobra website */
     this.cobra.connect('http://cobra-framework.com:8080');
 
+    /* Cobra callback function : Connection */
     this.cobra.connectionCallback = function() {
-        this.cobra.joinRoom(conf.getRoom());
+        this.cobra.joinRoom(room);
     }.bind(this);
 
+    /* Cobra callback function : Join Room */
     this.cobra.joinRoomCallback = function(roomName) {
     }.bind(this);
 
+    /* Cobra callback function : Receive Message */
     this.cobra.messageReceivedCallback = function(message) {
-        if (message.type == "infos" && message.clients) { // Message recu par le joueur quand il rejoint
-            this.game = new Game();
-            this.mainplayer = new Mainplayer(message.socketId, this.game.getGameArea(), this.game.getBackground());
-            this.players[message.socketId] = this.mainplayer;
+        /* Message received from Cobra upon connecting */
+        if (message.type == "infos") {
+            var id,
+                newPlayer;
 
+            id = message.socketId;
+            newPlayer = new MainPlayer(id, name, this.game.getGameArea());
+
+            /* Track the player's mouse */
             window.addEventListener("mousemove", function(e){
-                this.mainplayer.setTarget(e.pageX, e.pageY);
+                newPlayer.setTarget(e.pageX, e.pageY);
             }.bind(this), false);
 
+            /* Update the different canvas upon resize */
+            window.addEventListener("resize", function(){
+                this.game.resize();
+            }.bind(this), false);
+
+            /* Warn the other players about the newcomer */
             var spawnMessage = {
                 type: "new-player",
-                player: JSON.stringify(this.mainplayer)
+                player: JSON.stringify(newPlayer)
             };
+            this.messageHandler.send(spawnMessage);
 
-            this.sendMessage(spawnMessage);
-
-            if (message.clients.length === 1) { // Premier joueur, on initialise la partie
+            /* First player in the room, initialize the game */
+            if (message.clients.length === 1) {
                 this.game.init();
-                this.playersLoaded = true;
+                this.playersLoaded = true; // No other player to store
             }
+
+            /* Set the new player as the main player in his instance, and store him */
+            this.game.setMainPlayer(newPlayer);
+            this.players[id] = newPlayer;
 
             this.update();
         }
-        else if (message.room === conf.getRoom()) {
-            this.handleMessage(message.message);
-            /*var message = message.message;
-
-            if (message.type == "position") {
-                this.players[message.content.id].getCell().getCoords().setX(message.content.x);
-                this.players[message.content.id].getCell().getCoords().setY(message.content.y);
-            }*/
+        /* Message sent by a player */
+        else if (message.room === room) {
+            this.messageHandler.handle(message.message);
         }
     }.bind(this);
 
-    this.cobra.clientJoinedRoomCallback = function(data) {
+    /* Cobra callback function : Client Joined Room */
+    this.cobra.clientJoinedRoomCallback = function() {
+        /* Send the current state of the game to the newcomer */
         var message = {
             type: "game-state",
             pellets: this.game.pellets.map(JSON.stringify),
             players: this.listPlayers()
         };
 
-        this.sendMessage(message);
+        this.messageHandler.send(message);
     }.bind(this);
 
+    /* Cobra callback function : Client Left Room */
     this.cobra.clientLeftRoomCallback = function(data) {
+        /* Removes the player who left from the list */
         delete this.players[data.id];
     }.bind(this);
 };
 
-Server.prototype.sendMessage = function(message) {
-    this.cobra.sendMessage(message, conf.getRoom(), false);
-};
-
-Server.prototype.handleMessage = function(message) {
-    switch(message.type) {
-        case "game-state":
-            if (! this.game.isReady()) {
-                this.game.loadState(message.pellets);
-            }
-
-            if (! this.playersLoaded) {
-                this.loadPlayers(message.players);
-            }
-            break;
-
-        case "new-player":
-            var newPlayer = JSON.parse(message.player);
-            this.players[newPlayer.id] = new Player(newPlayer.id, this.game.getGameArea(), newPlayer.x, newPlayer.y);
-            break;
-    }
-};
-
+/* Puts the minimum required info about the players in a regular Array */
 Server.prototype.listPlayers = function() {
-    var list = new Array();
+    var list = [];
 
     for (var id in this.players) {
         if (this.players.hasOwnProperty(id)) {
@@ -105,8 +117,9 @@ Server.prototype.listPlayers = function() {
     }
 
     return list;
-}
+};
 
+/* Stores all the current players when joining an existing game */
 Server.prototype.loadPlayers = function(players) {
     for (var i = 0; i < players.length; i++) {
         var player = JSON.parse(players[i]);
@@ -117,66 +130,62 @@ Server.prototype.loadPlayers = function(players) {
     this.playersLoaded = true;
 };
 
-Server.prototype.displayCell = function() {
-    for (var id in this.players) {console.log("display other player");
-        if (this.players.hasOwnProperty(id) && id !== this.mainplayer.getId()) {
-            this.players[id].getCell().display();
+Server.prototype.checkPellets = function() {
+    var playerCell = this.game.getMainPlayer().getCell(),
+        pellets = this.game.getPellets(),
+        message;
+
+    for (var i = 0; i < pellets.length; i++) {
+        if (playerCell.isOverPellet(pellets[i])) {
+            playerCell.eatPellet(pellets[i]);
+            pellets.splice(i,1);
+
+            message = {
+                type: "eat-pellet",
+                index: i
+            };
+
+            this.messageHandler.send(message);
+
+            var newPellet = this.game.spawnPellet(this.game.getGameArea());
+
+            /* Send the current state of the game to the newcomer */
+            message = {
+                type: "new-pellet",
+                pellet: newPellet
+            };
+
+            this.messageHandler.send(message);
         }
     }
 };
 
-Server.prototype.displayMain = function() {
-    this.mainplayer.getCell().display();
-};
-
+/* Main loop */
 Server.prototype.update = function() {
-    this.mainplayer.move();
+    var background,
+        gameArea,
+        frame,
+        message;
 
-    /*
-    this.game.getGameArea().display();
-    this.game.displayPellet();
-    this.mainplayer.getFrame().display();*/
+    /* The player chooses a direction and informs the other players */
+    this.game.getMainPlayer().move();
 
-    var background = this.game.background,
-        area = this.game.gameArea,
-        frame = this.mainplayer.frame;
+    message = {
+        type: "player-move",
+        player: this.game.getMainPlayer()
+    };
 
-    background.clean();
-    this.game.initBackground();
-    area.clean();
-    frame.clean();
+    this.messageHandler.send(message);
 
-    var sx = Math.max(frame.origin.getX()-area.origin.getX(), 0),
-        sy = Math.max(frame.origin.getY()-area.origin.getY(), 0),
-        swidth = frame.getWidth(),
-        sheight = frame.getHeight(),
-        x = 0,
-        y = 0;
+    this.checkPellets();
 
-    if (sx == 0) {
-        x = area.origin.getX() - frame.origin.getX();
-        swidth -= x;
-    }
-    if (sy == 0) {
-        y = area.origin.getY() - frame.origin.getY();
-        sheight -= y;
-    }
+    background = this.game.getBackground();
+    gameArea = this.game.getGameArea();
+    frame = this.game.getMainPlayer().getFrame();
 
-    if (sx + swidth > area.getWidth()) {
-        swidth = area.getWidth() - sx;
-    }
-    if (sy + sheight > area.getHeight()) {
-        sheight = area.getHeight() - sy;
-    }
+    /* Takes into account the other players' moves and kills to update the board */
+    this.displayer.redraw(background, gameArea, frame, this.game, this.players);
 
-    frame.context.drawImage(background.html, frame.origin.getX(), frame.origin.getY(), frame.getWidth(), frame.getHeight(), 0, 0, frame.getWidth(), frame.getHeight());
-    this.game.displayPellet();
-    this.displayCell();
-    frame.context.drawImage(area.html, sx, sy, swidth, sheight, x, y, swidth, sheight);
-
-    this.displayMain();
-    //console.log("Origin " + JSON.stringify(this.mainplayer.frame.getOrigin()));
-    //console.log("Coords " + JSON.stringify(this.mainplayer.cell.getCoords()));
-
+    /* Callback */
     setTimeout(this.update.bind(this), 1000 / conf.getFps());
 };

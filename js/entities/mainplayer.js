@@ -1,13 +1,21 @@
-function Mainplayer(id, gameArea, background) {
+function MainPlayer(id, name, gameArea) {
     this.id = id;
     this.target = new D2Coordinate();
     this.frame = new Canvas(document.getElementById("frame"));
-    this.cell = new MainCell(this.frame, gameArea);
+    this.cell = new MainCell(this.frame, gameArea, name);
 
-    this.initFrame(gameArea, background);
+    this.initFrame(gameArea);
 }
 
-Mainplayer.prototype.initFrame = function(gameArea, background) {
+MainPlayer.prototype.getId = function() {
+    return this.id;
+};
+
+MainPlayer.prototype.getCell = function() {
+    return this.cell;
+};
+
+MainPlayer.prototype.initFrame = function(gameArea) {
     this.frame.resize(window.innerWidth, window.innerHeight);
 
     var center = this.cell.getCoords();
@@ -16,23 +24,15 @@ Mainplayer.prototype.initFrame = function(gameArea, background) {
         center.getY() + gameArea.getOrigin().getY() - this.frame.getHeight() / 2);
 };
 
-Mainplayer.prototype.getId = function() {
-    return this.id;
-};
-
-Mainplayer.prototype.getCell = function() {
-    return this.cell;
-};
-
-Mainplayer.prototype.getFrame = function() {
+MainPlayer.prototype.getFrame = function() {
     return this.frame;
 };
 
-Mainplayer.prototype.setTarget = function(x, y) {
+MainPlayer.prototype.setTarget = function(x, y) {
     this.target.set(x, y);
 };
 
-Mainplayer.prototype.move = function() {
+MainPlayer.prototype.move = function() {
     var moveX = this.target.getX() - window.innerWidth / 2,
         moveY = this.target.getY() - window.innerHeight / 2,
         moveVector = new D2Coordinate(moveX, moveY),
@@ -64,7 +64,11 @@ Mainplayer.prototype.move = function() {
     this.frame.getOrigin().set(tempCoords.getX(), tempCoords.getY());
 };
 
-Mainplayer.prototype.toJSON = function() {
+MainPlayer.prototype.resize = function() {
+    this.frame.resize(window.innerWidth, window.innerHeight);
+};
+
+MainPlayer.prototype.toJSON = function() {
     return {
         id: this.id,
         x: this.cell.getCoords().getX(),

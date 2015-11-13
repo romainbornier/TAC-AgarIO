@@ -1,9 +1,11 @@
+/* Utility class : Color mini toolbox */
 function Color(r, g, b) {
     this.r = r;
     this.g = g;
     this.b = b;
 }
 
+/* RGB to Hexa */
 Color.prototype.toHex = function() {
     var r, g, b;
 
@@ -14,10 +16,12 @@ Color.prototype.toHex = function() {
     return '#' + r + g + b;
 };
 
+/* Returns a random color */
 Color.prototype.generateRandom = function() {
     return new Color(Math.round(Math.random() * 255), Math.round(Math.random() * 255), Math.round(Math.random() * 255));
 };
 
+/* Darkens or lightens a color */
 Color.prototype.setLuminosity = function(ratio) {
     var r, g, b;
     r = this.r;

@@ -1,8 +1,10 @@
+/* Utility class : 2D Vector */
 function D2Coordinate(x, y) {
-    this.x = (x) ? x:0;
-    this.y = (y) ? y:0;
+    this.x = (x) ? x : 0;
+    this.y = (y) ? y : 0;
 }
 
+/* Getters and setters */
 D2Coordinate.prototype.getX = function() {
     return this.x;
 };
@@ -32,6 +34,7 @@ D2Coordinate.prototype.addY = function(value) {
     this.y += value;
 };
 
+/* Euler formula for distance in 2D */
 D2Coordinate.prototype.distance = function(coords) {
     var distanceX, distanceY;
 

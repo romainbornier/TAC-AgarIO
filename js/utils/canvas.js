@@ -1,3 +1,4 @@
+/* Utility class : Canvas toolbox */
 // Gear drawing inspiration : Copyright (C) Ken Fyrstenberg / Epistemex
 
 function Canvas(element) {
@@ -7,6 +8,7 @@ function Canvas(element) {
     this.origin = new D2Coordinate();
 }
 
+/* Getters and setters */
 Canvas.prototype.getWidth = function() {
     return this.size.getX();
 };
@@ -27,6 +29,7 @@ Canvas.prototype.setOrigin = function(x, y) {
     this.origin.set(x, y);
 };
 
+/* Set the canvas object's properties and the corresponding html element's dimensions */
 Canvas.prototype.resize = function(width, height) {
     this.size.setX(width);
     this.size.setY(height);
@@ -35,7 +38,8 @@ Canvas.prototype.resize = function(width, height) {
     this.html.height = this.getHeight();
 };
 
-Canvas.prototype.drawCircle = function(coords, size, color, border, border_light) {
+/* Additional shape : circle */
+Canvas.prototype.drawCircle = function(coords, size, color, border, border_light, name) {
     this.context.beginPath();
 
     this.context.arc(coords.getX(), coords.getY(), size/2, 0, Math.PI*2);
@@ -50,8 +54,16 @@ Canvas.prototype.drawCircle = function(coords, size, color, border, border_light
         this.context.strokeStyle = color.setLuminosity(border_light).toHex();
         this.context.stroke();
     }
+
+    if (name !== undefined) {
+        this.context.font = conf.getFont();
+        var textWidth = this.context.measureText(name).width;
+        this.context.fillStyle = color.setLuminosity(border_light).toHex();
+        this.context.fillText(name, coords.getX() - textWidth/2, coords.getY() + 5);
+    }
 };
 
+/* Additional shape : regular polygon */
 Canvas.prototype.drawPolygon = function(coords, size, sides, color, border, border_light) {
     this.context.beginPath();
 
@@ -74,7 +86,7 @@ Canvas.prototype.drawPolygon = function(coords, size, sides, color, border, bord
     }
 };
 
-Canvas.prototype.drawGear = function(coords, size, notches, notches_size, color, border, border_light) {
+/*Canvas.prototype.drawGear = function(coords, size, notches, notches_size, color, border, border_light) {
 
     var angle = Math.PI*2 / (notches * 2),    // angle between notches
         taperAI = angle * 0.5,            // inner taper offset
@@ -114,20 +126,9 @@ Canvas.prototype.drawGear = function(coords, size, notches, notches_size, color,
         this.context.strokeStyle = color.setLuminosity(border_light).toHex();
         this.context.stroke();
     }
-}
+};*/
 
-Canvas.prototype.display = function() {
-    this.clean();
-
-    if (this.parent && this.parent.constructor === Canvas) {
-        this.context.drawImage(this.parent.html, this.origin.getX(), this.origin.getY(), this.getWidth(), this.getHeight(), 0, 0, this.getWidth(), this.getHeight());
-    }
-
-    if (this.parent && this.parent.constructor === Canvas) {
-        this.context.drawImage(this.parent.html, this.origin.getX(), this.origin.getY(), this.getWidth(), this.getHeight(), 0, 0, this.getWidth(), this.getHeight());
-    }
-};
-
+/* Canvas reset */
 Canvas.prototype.clean = function() {
     this.context.clearRect(0, 0, this.getWidth(), this.getHeight());
-}
+};
