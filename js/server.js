@@ -25,7 +25,7 @@ Server.prototype.init = function() {
     this.cobra.messageReceivedCallback = function(message) {
         if (message.type == "infos" && message.clients) { // Message recu par le joueur quand il rejoint
             this.game = new Game();
-            this.mainplayer = new Mainplayer(message.socketId, this.game.getGameArea());
+            this.mainplayer = new Mainplayer(message.socketId, this.game.getGameArea(), this.game.getBackground());
             this.players[message.socketId] = this.mainplayer;
 
             window.addEventListener("mousemove", function(e){
@@ -108,7 +108,6 @@ Server.prototype.listPlayers = function() {
 }
 
 Server.prototype.loadPlayers = function(players) {
-    console.log(players);
     for (var i = 0; i < players.length; i++) {
         var player = JSON.parse(players[i]);
 
@@ -119,17 +118,65 @@ Server.prototype.loadPlayers = function(players) {
 };
 
 Server.prototype.displayCell = function() {
-    //console.log(this.listPlayers());
-    for (var id in this.players) {
-        if (this.players.hasOwnProperty(id)) {
+    for (var id in this.players) {console.log("display other player");
+        if (this.players.hasOwnProperty(id) && id !== this.mainplayer.getId()) {
             this.players[id].getCell().display();
         }
     }
 };
 
+Server.prototype.displayMain = function() {
+    this.mainplayer.getCell().display();
+};
+
 Server.prototype.update = function() {
+    this.mainplayer.move();
+
+    /*
+    this.game.getGameArea().display();
+    this.game.displayPellet();
+    this.mainplayer.getFrame().display();*/
+
+    var background = this.game.background,
+        area = this.game.gameArea,
+        frame = this.mainplayer.frame;
+
+    background.clean();
+    this.game.initBackground();
+    area.clean();
+    frame.clean();
+
+    var sx = Math.max(frame.origin.getX()-area.origin.getX(), 0),
+        sy = Math.max(frame.origin.getY()-area.origin.getY(), 0),
+        swidth = frame.getWidth(),
+        sheight = frame.getHeight(),
+        x = 0,
+        y = 0;
+
+    if (sx == 0) {
+        x = area.origin.getX() - frame.origin.getX();
+        swidth -= x;
+    }
+    if (sy == 0) {
+        y = area.origin.getY() - frame.origin.getY();
+        sheight -= y;
+    }
+
+    if (sx + swidth > area.getWidth()) {
+        swidth = area.getWidth() - sx;
+    }
+    if (sy + sheight > area.getHeight()) {
+        sheight = area.getHeight() - sy;
+    }
+
+    frame.context.drawImage(background.html, frame.origin.getX(), frame.origin.getY(), frame.getWidth(), frame.getHeight(), 0, 0, frame.getWidth(), frame.getHeight());
     this.game.displayPellet();
     this.displayCell();
+    frame.context.drawImage(area.html, sx, sy, swidth, sheight, x, y, swidth, sheight);
+
+    this.displayMain();
+    //console.log("Origin " + JSON.stringify(this.mainplayer.frame.getOrigin()));
+    //console.log("Coords " + JSON.stringify(this.mainplayer.cell.getCoords()));
 
     setTimeout(this.update.bind(this), 1000 / conf.getFps());
 };

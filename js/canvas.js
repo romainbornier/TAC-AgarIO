@@ -1,19 +1,11 @@
 // Gear drawing inspiration : Copyright (C) Ken Fyrstenberg / Epistemex
 
-function Canvas(name, width, height) {
-    this.name = name;
-    this.html = document.getElementById(name);
-    this.context = this.html.getContext('2d');
-    this.size = new D2Coordinate(width, height);
-    this.origin = new D2Coordinate(0,0);
-    this.parent = null;
-
-    this.resize(width, height);
+function Canvas(element) {
+    this.html = element;
+    this.context = element.getContext('2d');
+    this.size = new D2Coordinate();
+    this.origin = new D2Coordinate();
 }
-
-Canvas.prototype.getName = function() {
-    return this.name;
-};
 
 Canvas.prototype.getWidth = function() {
     return this.size.getX();
@@ -21,19 +13,6 @@ Canvas.prototype.getWidth = function() {
 
 Canvas.prototype.getHeight = function() {
     return this.size.getY();
-};
-
-Canvas.prototype.getParent = function() {
-    return this.parent;
-};
-
-Canvas.prototype.setParent = function(parent) {
-    if (parent === null || parent.constructor !== Canvas) {
-        console.error("Type error : The parent of a canvas must be another canvas");
-    }
-    else {
-        this.parent = parent;
-    }
 };
 
 Canvas.prototype.getContext = function() {
@@ -139,6 +118,10 @@ Canvas.prototype.drawGear = function(coords, size, notches, notches_size, color,
 
 Canvas.prototype.display = function() {
     this.clean();
+
+    if (this.parent && this.parent.constructor === Canvas) {
+        this.context.drawImage(this.parent.html, this.origin.getX(), this.origin.getY(), this.getWidth(), this.getHeight(), 0, 0, this.getWidth(), this.getHeight());
+    }
 
     if (this.parent && this.parent.constructor === Canvas) {
         this.context.drawImage(this.parent.html, this.origin.getX(), this.origin.getY(), this.getWidth(), this.getHeight(), 0, 0, this.getWidth(), this.getHeight());

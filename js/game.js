@@ -1,6 +1,6 @@
 function Game() {
-    this.gameArea = new Canvas("gameArea");
-    this.background = new Canvas("background");
+    this.background = new Canvas(document.createElement("canvas"));
+    this.gameArea = new Canvas(document.createElement("canvas"));
 
     this.initGameArea();
     this.initBackground();
@@ -14,11 +14,13 @@ Game.prototype.getGameArea = function() {
     return this.gameArea;
 };
 
-Game.prototype.initGameArea = function() {
-    this.gameArea.resize(conf.getGameWidth(), conf.getGameHeight());
+Game.prototype.getBackground = function() {
+    return this.background;
+};
 
-    this.gameArea.setParent(this.background);
-    this.gameArea.setOrigin(window.innerWidth / 2, window.innerHeight / 2);
+Game.prototype.initGameArea = function() {
+    this.gameArea.setOrigin(window.innerWidth/2, window.innerHeight/2);
+    this.gameArea.resize(conf.getGameWidth(), conf.getGameHeight());
 };
 
 Game.prototype.initBackground = function() {
@@ -103,22 +105,7 @@ Game.prototype.update = function() {
 
     setTimeout(this.update.bind(this), 1000 / this.fps);
 };
-
-Game.prototype.displayCell = function() {
-    for (var i = 0; i < this.multiplayer.players.length; i++) {
-        this.multiplayer.players[i].getCell().display();
-    }
-};
-
-Game.prototype.getPlayer = function() {
-    return this.multiplayer.mainplayer;
-};
-
-Game.prototype.getPellets = function() {
-    return this.multiplayer.pellets;
-};
-    */
-
+*/
 Game.prototype.spawnPellet = function(x, y) {
     this.pellets.push(new Pellet(this.gameArea, x, y));
 };

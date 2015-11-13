@@ -9,15 +9,16 @@ html, body {
     overflow:hidden;
 }
 
-#background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    background-color:#EEEEFF;
+#frame {
+    display:block;
+    position:absolute;
+    top:0;
+    left:0;
 }
 
 #gameArea {
-    position: absolute;
-    top: 50%;
-    left: 50%;
+    display:block;
+    position:absolute;
+    top:50%;
+    left:50%;
 }

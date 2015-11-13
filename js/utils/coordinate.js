@@ -1,6 +1,6 @@
 function D2Coordinate(x, y) {
-    this.x = x;
-    this.y = y;
+    this.x = (x) ? x:0;
+    this.y = (y) ? y:0;
 }
 
 D2Coordinate.prototype.getX = function() {
@@ -34,6 +34,10 @@ D2Coordinate.prototype.addY = function(value) {
 
 D2Coordinate.prototype.distance = function(coords) {
     var distanceX, distanceY;
+
+    if (! coords) {
+        coords = new D2Coordinate();
+    }
 
     distanceX = this.x - coords.getX();
     distanceY = this.y - coords.getY();

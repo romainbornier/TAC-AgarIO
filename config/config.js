@@ -1,6 +1,6 @@
 function Config() {
-    this.gameWidth = 300;
-    this.gameHeight = 300;
+    this.gameWidth = 1000;
+    this.gameHeight = 1000;
     this.fps = 60;
 
     this.gridSize = 50;
@@ -10,7 +10,7 @@ function Config() {
 
     this.cellStartScore = 10;
 
-    this.room = "agario_room65";
+    this.room = "agario_room72";
 }
 
 Config.prototype.getGameWidth = function() {
