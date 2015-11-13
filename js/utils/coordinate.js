@@ -22,7 +22,7 @@ D2Coordinate.prototype.setY = function(y) {
 D2Coordinate.prototype.set = function(x, y) {
     this.x = x;
     this.y = y;
-}
+};
 
 D2Coordinate.prototype.addX = function(value) {
     this.x += value;

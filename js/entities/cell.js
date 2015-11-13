@@ -1,6 +1,8 @@
 function Cell(canvas, spawnX, spawnY) {
     var x, y;
 
+    this.playerName = "TestName";
+    this.fontSize = 10;
     this.canvas = canvas;
     this.color = Color.prototype.generateRandom();
     this.score = conf.getCellStartScore();
@@ -11,6 +13,7 @@ function Cell(canvas, spawnX, spawnY) {
     y = (spawnY) ? spawnY : displaySize + Math.random() * (canvas.getHeight() - 2 * displaySize);
 
     this.coords = new D2Coordinate(x, y);
+    this.score = this.radius*this.radius*Math.PI;
 }
 
 Cell.prototype.setMass = function(value) {
@@ -37,6 +40,14 @@ Cell.prototype.display = function() {
         console.error("Display error : No canvas associated with this cell");
     } else {
         this.canvas.drawCircle(this.coords, this.getDisplaySize(), this.color, 5, 0.7);
+        this.canvas.drawName(relative_coords, this.playerName, this.radius, this.fontSize, 0.4);
+    }
+};
+
+
+Cell.prototype.updateFontSize = function() {
+    if (this.canvas.context.measureText(this.playerName).width < this.radius + 20) {
+        this.fontSize++;
     }
 };
 

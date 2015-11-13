@@ -9,7 +9,7 @@ function Pellet(canvas, spawnX, spawnY) {
     this.color = Color.prototype.generateRandom();
     this.size = 10;
     this.sides = 6;
-    this.value = 1;
+    this.value = 100;
 }
 
 Pellet.prototype.getCoords = function() {
